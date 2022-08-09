@@ -1,4 +1,4 @@
 # ss-to-spotify
 Scan a folder containing photos for screenshots containing songs and add them to a Spotify playlist.
 
-Requires iOS 15
+Currently requiring screenshots taken on iOS 15
