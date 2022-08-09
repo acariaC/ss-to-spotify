@@ -1,37 +1,71 @@
+import os
+import re
 import cv2
-import numpy as np
-from pytesseract import pytesseract, Output
+import spotipy
+from pytesseract import pytesseract
+from spotipy.oauth2 import SpotifyOAuth
 
-# Getting the image from specified folder
-img = cv2.imread("/Users/oliverkuhn/Desktop/iCloud Photos/IMG_3785.PNG")
-# ALTERNATIVE TEST: img = cv2.imread("/Users/oliverkuhn/Desktop/iCloud Photos/IMG_4057.PNG")
+# Setting up the Spotify API
 
+scope = "playlist-modify-public"
+username = "lvrkhn"
 
-# General information about the image (to be deleted!)
-rows, cols, _ = img.shape
-print("ROWS: ", rows)
-print("COLUMNS: ", cols, "\n")
+token = SpotifyOAuth(scope=scope, username=username)
+spotifyObject = spotipy.Spotify(auth_manager=token)
 
-# Cropping the image down to the relevant parts
-cropped_image = img[700: 1955, 0: 1170]
+# Creating the playlist
 
-# Getting the text in the cropped image
-config = 'textord_min_xheight 255'
+playlistName = input("Enter a playlist name: ")
+playlistDesc = "Created with ss-to-spotify"
 
-artistAndTitle = pytesseract.image_to_string(cropped_image, config = config)
-print(artistAndTitle)
+spotifyObject.user_playlist_create(user=username, name=playlistName, public=True, description=playlistDesc)
+listOfSongs = []
 
-h, w, c = img.shape
-boxes = pytesseract.image_to_boxes(img)
-for b in boxes.splitlines():
-    b = b.split(' ')
-    img = cv2.rectangle(img, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (0, 255, 0), 2)
+# Getting the images from a directory
+folder_dir = "/Users/oliverkuhn/Desktop/iCloud Photos/"
+img = cv2.imread(folder_dir)
 
+for images in os.listdir(folder_dir):
+    img = cv2.imread(folder_dir + images)
+    if images.endswith('.PNG') or (images.endswith('.JPEG')):
+        dimensions = img.shape
 
-# Displaying the image
+        if dimensions == (2532, 1170, 3):
+            # Cropping the image down to the relevant parts
+            cropped_image = img[870: 1030, 380: 1000]
+
+            # Getting the text in the cropped image
+            options = r'-c textord_min_xheight=55 -c ' \
+                      r'preserve_interword_spaces=0'
+
+            artistAndTitle = pytesseract.image_to_string(cropped_image, config=options)
+            result = re.sub(r"[^a-zA-Z0-9]+", ' ', artistAndTitle).strip()
+            if result:
+                # print(result)
+                lengthCheck = len(result.split())
+                if lengthCheck >= 3:
+                    print(result)
+                    song = spotifyObject.search(q=result)
+                    try:
+                        print(song['tracks']['items'][0]['uri'])
+                        listOfSongs.append(song['tracks']['items'][0]['uri'])
+                    except IndexError:
+                        print("No song found.")
+
+                    # cv2.imshow("Cropped Image", cropped_image)
+                    # cv2.waitKey(0)
+
+# Finding the new playlist
+prePlaylist = spotifyObject.user_playlists(user=username)
+playlist = prePlaylist['items'][0]['id']
+
+# Adding songs
+spotifyObject.user_playlist_add_tracks(user=username, playlist_id=playlist, tracks=listOfSongs)
 
 cv2.imshow("Boxed", cropped_image)
-cv2.waitKey(0)
 
+scope = "playlist-modify-public"
+username = "lvrkhn"
 
-
+token = SpotifyOAuth(scope=scope, username=username)
+spotifyObject = spotipy.Spotify(auth_manager=token)
