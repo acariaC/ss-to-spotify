@@ -1,14 +1,25 @@
 import os
 import re
 import cv2
+import requests.exceptions
 import spotipy
 from pytesseract import pytesseract
 from spotipy.oauth2 import SpotifyOAuth
 
-# Setting up the Spotify API
+# Set up your environmental variables!!
+# Preventing wrong usernames
+def usernameAuthenticator():
+    try:
+        print("Note that entering the wrong username will currently crash the application.")
+        return input(" Enter your username: ")
+    except requests.exceptions.HTTPError:
+        print("You can not create a playlist for another user.")
+        usernameAuthenticator()
 
+
+# Setting up the Spotify API
 scope = "playlist-modify-public"
-username = "lvrkhn"
+username = usernameAuthenticator()
 
 token = SpotifyOAuth(scope=scope, username=username)
 spotifyObject = spotipy.Spotify(auth_manager=token)
@@ -16,7 +27,7 @@ spotifyObject = spotipy.Spotify(auth_manager=token)
 # Creating the playlist
 
 playlistName = input("Enter a playlist name: ")
-playlistDesc = "Created with ss-to-spotify"
+playlistDesc = "Created with ss-to-spotify: https://github.com/acariaC/ss-to-spotify"
 
 spotifyObject.user_playlist_create(user=username, name=playlistName, public=True, description=playlistDesc)
 listOfSongs = []
@@ -62,10 +73,5 @@ playlist = prePlaylist['items'][0]['id']
 # Adding songs
 spotifyObject.user_playlist_add_tracks(user=username, playlist_id=playlist, tracks=listOfSongs)
 
-cv2.imshow("Boxed", cropped_image)
-
-scope = "playlist-modify-public"
-username = "lvrkhn"
-
-token = SpotifyOAuth(scope=scope, username=username)
-spotifyObject = spotipy.Spotify(auth_manager=token)
+# cv2.imshow("Boxed", cropped_image)
+print("Finished.")
