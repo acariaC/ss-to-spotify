@@ -6,13 +6,18 @@ import spotipy
 from pytesseract import pytesseract
 from spotipy.oauth2 import SpotifyOAuth
 
-# Set up your environmental variables!!
-# Preventing wrong usernames
+def connectToSpotify():
+    print("Get a client ID & client secret from: https://developer.spotify.com/dashboard/applications")
+    os.environ['SPOTIPY_REDIRECT_URI'] = 'http://127.0.0.1:8080/'
+    os.environ['SPOTIPY_CLIENT_ID'] = input("Enter your client ID: ")
+    os.environ['SPOTIPY_CLIENT_SECRET'] = input("Enter your client secret: ")
+
+
 def usernameAuthenticator():
     try:
         print("Note that entering the wrong username will currently crash the application.")
-        return input(" Enter your username: ")
-    except requests.exceptions.HTTPError:
+        return input("Enter your username: ")
+    except requests.exceptions.HTTPError:  # Does not work
         print("You can not create a playlist for another user.")
         usernameAuthenticator()
 
@@ -20,6 +25,7 @@ def usernameAuthenticator():
 # Setting up the Spotify API
 scope = "playlist-modify-public"
 username = usernameAuthenticator()
+connectToSpotify()
 
 token = SpotifyOAuth(scope=scope, username=username)
 spotifyObject = spotipy.Spotify(auth_manager=token)
@@ -63,8 +69,8 @@ for images in os.listdir(folder_dir):
                     except IndexError:
                         print("No song found.")
 
-                    # cv2.imshow("Cropped Image", cropped_image)
-                    # cv2.waitKey(0)
+                        # cv2.imshow("Cropped Image", cropped_image)
+                        # cv2.waitKey(0)
 
 # Finding the new playlist
 prePlaylist = spotifyObject.user_playlists(user=username)
