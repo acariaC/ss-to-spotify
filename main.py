@@ -17,7 +17,7 @@ def usernameAuthenticator():
     try:
         print("Note that entering the wrong username will currently crash the application.")
         return input("Enter your username: ")
-    except requests.exceptions.HTTPError:  # Does not work
+    except requests.exceptions.HTTPError or spotipy.SpotifyException:  # Does not work
         print("You can not create a playlist for another user.")
         usernameAuthenticator()
 
@@ -39,7 +39,7 @@ spotifyObject.user_playlist_create(user=username, name=playlistName, public=True
 listOfSongs = []
 
 # Getting the images from a directory
-folder_dir = "/Users/oliverkuhn/Desktop/iCloud Photos/"
+folder_dir = input("Please choose your photo directory: ")
 img = cv2.imread(folder_dir)
 
 for images in os.listdir(folder_dir):
